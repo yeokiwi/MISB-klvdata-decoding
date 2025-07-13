@@ -244,6 +244,7 @@ int main(int argc, char* argv[]) {
     for (unsigned int i = 0; i < fmt_ctx->nb_streams; i++) {
         if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
             video_stream_index = i;
+            printf("video stream index %d\n", i);
             break;
         }
     }
@@ -275,7 +276,7 @@ int main(int argc, char* argv[]) {
     // Allocate frames and packet
     AVFrame* frame = av_frame_alloc();
     AVFrame* rgb_frame = av_frame_alloc();
-    AVPacket* packet = av_packet_alloc();
+//    AVPacket* packet = av_packet_alloc();
 
     int width = codec_ctx->width;
     int height = codec_ctx->height;
@@ -293,10 +294,9 @@ int main(int argc, char* argv[]) {
             parse_klv_payload(pkt->data, pkt->size);
             std::cout << "-----------------------------\n";
         }
-        av_packet_unref(pkt);
     
-        if (packet->stream_index == video_stream_index) {
-            if (avcodec_send_packet(codec_ctx, packet) == 0) {
+        if (pkt->stream_index == video_stream_index) {
+            if (avcodec_send_packet(codec_ctx, pkt) == 0) {
                 while (avcodec_receive_frame(codec_ctx, frame) == 0) {
                     // Convert to BGR for OpenCV
                     sws_scale(sws_ctx, frame->data, frame->linesize, 0, height,
@@ -308,7 +308,7 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-        av_packet_unref(packet);
+        av_packet_unref(pkt);
 
     
     }
@@ -316,7 +316,7 @@ int main(int argc, char* argv[]) {
     sws_freeContext(sws_ctx);
     av_frame_free(&frame);
     av_frame_free(&rgb_frame);
-    av_packet_free(&packet);
+    av_packet_free(&pkt);
     avcodec_free_context(&codec_ctx);
     avformat_close_input(&fmt_ctx);
     avformat_network_deinit();
