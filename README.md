@@ -2,7 +2,7 @@
 
 
 
-ffmpeg -re -i test.mpg -map 0 -c copy -f mpegts "udp://@127.0.0.1:1234"
+ffmpeg -stream_loop -1 -re -i test.mpg -map 0 -c copy -f mpegts "udp://@127.0.0.1:1234"
 
 
 
